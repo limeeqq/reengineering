@@ -20,13 +20,12 @@ namespace NetSdrClientAppTests
             //Act
             byte[] msg = NetSdrMessageHelper.GetControlItemMessage(type, code, new byte[parametersLength]);
 
-            var headerBytes = msg.Take(2);
+            var headerBytes = msg.Take(2).ToArray();
             var codeBytes = msg.Skip(2).Take(2);
             var parametersBytes = msg.Skip(4);
 
-            var num = BitConverter.ToUInt16(headerBytes.ToArray());
-            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
-            var actualLength = num - ((int)actualType << 13);
+            DecodeHeader(headerBytes, out var actualType, out var actualLength);
+
             var actualCode = BitConverter.ToInt16(codeBytes.ToArray());
 
             //Assert
@@ -49,12 +48,10 @@ namespace NetSdrClientAppTests
             //Act
             byte[] msg = NetSdrMessageHelper.GetDataItemMessage(type, new byte[parametersLength]);
 
-            var headerBytes = msg.Take(2);
+            var headerBytes = msg.Take(2).ToArray();
             var parametersBytes = msg.Skip(2);
 
-            var num = BitConverter.ToUInt16(headerBytes.ToArray());
-            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
-            var actualLength = num - ((int)actualType << 13);
+            DecodeHeader(headerBytes, out var actualType, out var actualLength);
 
             //Assert
             Assert.That(headerBytes.Count(), Is.EqualTo(2));
@@ -64,6 +61,12 @@ namespace NetSdrClientAppTests
             Assert.That(parametersBytes.Count(), Is.EqualTo(parametersLength));
         }
 
-        //TODO: add more NetSdrMessageHelper tests
+        // New met
+        private void DecodeHeader(byte[] headerBytes, out NetSdrMessageHelper.MsgTypes type, out int length)
+        {
+            var num = BitConverter.ToUInt16(headerBytes);
+            type = (NetSdrMessageHelper.MsgTypes)(num >> 13);
+            length = num - ((int)type << 13);
+        }
     }
 }
