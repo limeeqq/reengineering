@@ -116,14 +116,25 @@ public class NetSdrClientTests
     }
 
 
-    [Test]
+[Test]
     public async Task StopIQTest()
-    
-    
+    {
+        //Arrange 
+        await ConnectAsyncTest();
+
+        //act
+        await _client.StopIQAsync();
+
+        //assert
+        //No exception thrown
+        _updMock.Verify(udp => udp.StopListening(), Times.Once);
+        Assert.That(_client.IQStarted, Is.False);
+    }
+
     [Test]
     public async Task ConnectAsync_ShouldSendInitializationMessages()
     {
-
+        // Arr
         var capturedMessages = new List<byte[]>();
         
         // Setup mock to capture sent messages
@@ -131,13 +142,11 @@ public class NetSdrClientTests
                 .Callback<byte[]>(msg => capturedMessages.Add(msg))
                 .Returns(Task.CompletedTask);
 
+        // Act
         await _client.ConnectAsync();
 
+        // Assert
         _tcpMock.Verify(tcp => tcp.Connect(), Times.Once);
-        // Expecting 3 initialization messages (SampleRate, Filter, ADMode)
         Assert.That(capturedMessages.Count, Is.EqualTo(3), "Should send 3 initialization messages");
     }
-    
-
-} 
-
+}
