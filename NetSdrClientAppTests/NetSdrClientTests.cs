@@ -115,5 +115,29 @@ public class NetSdrClientTests
         Assert.That(_client.IQStarted, Is.False);
     }
 
-    //TODO: cover the rest of the NetSdrClient code here
-}
+
+    [Test]
+    public async Task StopIQTest()
+    
+    
+    [Test]
+    public async Task ConnectAsync_ShouldSendInitializationMessages()
+    {
+
+        var capturedMessages = new List<byte[]>();
+        
+        // Setup mock to capture sent messages
+        _tcpMock.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()))
+                .Callback<byte[]>(msg => capturedMessages.Add(msg))
+                .Returns(Task.CompletedTask);
+
+        await _client.ConnectAsync();
+
+        _tcpMock.Verify(tcp => tcp.Connect(), Times.Once);
+        // Expecting 3 initialization messages (SampleRate, Filter, ADMode)
+        Assert.That(capturedMessages.Count, Is.EqualTo(3), "Should send 3 initialization messages");
+    }
+    
+
+} 
+
